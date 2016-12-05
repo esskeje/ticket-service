@@ -1,5 +1,11 @@
 package com.example.ticket.api.dao;
 
+/**
+ * Exception for DAO Layer.
+ * 
+ * @author satish
+ *
+ */
 @SuppressWarnings("serial")
 public class DAOException extends Exception {
 

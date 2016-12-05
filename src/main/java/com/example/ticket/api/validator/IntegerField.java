@@ -20,4 +20,20 @@ public class IntegerField implements Field {
 		}
 	}
 
+	public int getMinValue() {
+		return minValue;
+	}
+
+	public int getMaxValue() {
+		return maxValue;
+	}
+
+	public int getFieldValue() {
+		return fieldValue;
+	}
+
+	public String getFieldName() {
+		return fieldName;
+	}
+
 }

@@ -10,12 +10,13 @@ import com.example.ticket.api.dao.DAOFactory;
 import com.example.ticket.api.models.SeatHold;
 import com.example.ticket.api.service.TicketService;
 import com.example.ticket.impl.dao.AbstractDAOFactory;
-import com.example.ticket.impl.service.SimpleConfirmationCodeGenerator;
 import com.example.ticket.impl.service.PriceBasedBestSeatStrategy;
 import com.example.ticket.impl.service.PropertyFileBasedConfig;
+import com.example.ticket.impl.service.SimpleConfirmationCodeGenerator;
 import com.example.ticket.impl.service.SimpleSeatHoldIdGenerator;
 import com.example.ticket.impl.service.TicketServiceException;
 import com.example.ticket.impl.service.TicketServiceImpl;
+import com.example.ticket.impl.service.VenueBuilder;
 
 /**
  * Main application
@@ -26,7 +27,9 @@ public class App {
 	public static void main(String[] args) {
 		System.out.println("Ticket Service! START");
 		try {
-			Config config = new PropertyFileBasedConfig("ticket-service.properties");
+			//Config config = new PropertyFileBasedConfig("ticket-service.properties");
+			Config config = new PropertyFileBasedConfig(App.class.getClassLoader().getResourceAsStream("ticket-service.properties"));
+			config.setVenue(VenueBuilder.create());
 			DAOFactory factory = AbstractDAOFactory.create(config.getProperty(Constants.PERSITENCE_TYPE, Constants.PERSITENCE_TYPE_MEMORY));
 			TicketService ticketService = new TicketServiceImpl(config, new SimpleSeatHoldIdGenerator(),
 					new SimpleConfirmationCodeGenerator(), 
@@ -37,7 +40,7 @@ public class App {
 			int numSeatsAvailable = ticketService.numSeatsAvailable();
 			System.out.println("Initial numSeatsAvailable: "+numSeatsAvailable);
 			SeatHold seatHold = ticketService.findAndHoldSeats(2, "abc1@gmail.com");
-			System.out.println("SeatHold="+seatHold.getSeatHoldKey().getSeatHoldId()+", "+seatHold.getSeatHoldKey().getCustomerEmail());
+			System.out.println("SeatHold: seatHoldId="+seatHold.getSeatHoldKey().getSeatHoldId()+", customerEmail="+seatHold.getSeatHoldKey().getCustomerEmail());
 			
 			numSeatsAvailable = ticketService.numSeatsAvailable();
 			System.out.println("After 2 seats held, numSeatsAvailable: "+numSeatsAvailable);
@@ -47,7 +50,8 @@ public class App {
 			System.out.println("After above 2 seats reserved, numSeatsAvailable: "+numSeatsAvailable);
 			
 			seatHold = ticketService.findAndHoldSeats(2, "abc2@gmail.com");
-			System.out.println("SeatHold="+seatHold.getSeatHoldKey().getSeatHoldId()+", "+seatHold.getSeatHoldKey().getCustomerEmail());
+			System.out.println("Another SeatHold: seatHoldId="+seatHold.getSeatHoldKey().getSeatHoldId()+", customerEmail="+seatHold.getSeatHoldKey().getCustomerEmail());
+
 			
 			numSeatsAvailable = ticketService.numSeatsAvailable();
 			System.out.println("After another 2 seats held, numSeatsAvailable: "+numSeatsAvailable);

@@ -1,4 +1,4 @@
-package com.example.ticket.impl.dao.inmemory;
+package com.example.ticket.impl.service;
 
 import java.io.IOException;
 import java.math.BigDecimal;

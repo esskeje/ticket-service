@@ -2,10 +2,15 @@ package com.example.ticket.api.models;
 
 import java.util.HashSet;
 import java.util.Set;
-
+/**
+ * Pojo class to represent a Venue.
+ * 
+ * @author satish
+ *
+ */
 public class Venue {
-	String name;
-	Set<Level> levels= new HashSet<>();
+	private String name;
+	private Set<Level> levels= new HashSet<>();
 	public String getName() {
 		return name;
 	}

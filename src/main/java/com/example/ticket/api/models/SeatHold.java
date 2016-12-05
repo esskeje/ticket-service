@@ -21,12 +21,10 @@ public class SeatHold {
 	}
 
 	public List<Seat> getHeldSeats() {
-		// TODO clone?
 		return heldSeats;
 	}
 
 	public LocalDateTime getHoldTime() {
-		// TODO clone?
 		return holdTime;
 	}
 	

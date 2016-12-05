@@ -25,7 +25,6 @@ import com.example.ticket.api.service.TicketService;
 public class TicketServiceImpl implements TicketService {
 	protected SeatDAO seatDAO;
 	protected SeatHoldDAO seatHoldDAO;
-	private int ttlInSec;
 	protected SeatHoldIdGenerator seatHoldIdGenerator;
 	protected ConfirmationCodeGenerator confirmationCodeGenerator;
 	protected BestSeatStrategy bestSeatStrategy;
@@ -41,7 +40,7 @@ public class TicketServiceImpl implements TicketService {
 	 */
 	public TicketServiceImpl(Config config,DAOFactory factory)throws TicketServiceException {
 		this(config,new SimpleSeatHoldIdGenerator(),new SimpleConfirmationCodeGenerator(),
-				factory, new PriceBasedBestSeatStrategy(),Logger.getLogger("TicketServiceImpl"));
+				factory, new PriceBasedBestSeatStrategy(),Logger.getLogger(TicketServiceImpl.class.getName()));
 	}
 
 	/**
@@ -58,25 +57,24 @@ public class TicketServiceImpl implements TicketService {
 	public TicketServiceImpl(Config config, SeatHoldIdGenerator seatHoldIdGenerator,
 			ConfirmationCodeGenerator confirmationCodeGenerator, DAOFactory factory, BestSeatStrategy bestSeatStrategy,
 			Logger logger) throws TicketServiceException {
-		nullCheck(config,"Config");
+		TicketServiceUtil.nullCheck(config,"Config");
+		TicketServiceUtil.nullCheck(factory,"DAOFactory");
+		TicketServiceUtil.nullCheck(seatHoldIdGenerator,"SeatHoldIdGenerator");
+		TicketServiceUtil.nullCheck(confirmationCodeGenerator,"ConfirmationCodeGenerator");
+		TicketServiceUtil.nullCheck(bestSeatStrategy,"BestSeatStrategy");
+		TicketServiceUtil.nullCheck(logger,"Logger");
 		//initialize ttl
-		this.ttlInSec = config.getIntegerProperty(Constants.HOLD_EXPIRY_TIME, Constants.HOLD_EXPIRY_TIME_DEFAULT_VALUE);
 		try {
-			nullCheck(factory,"DAOFactory");
 			//create DAOs
-			this.seatDAO = factory.createSeatDAO();
-			this.seatHoldDAO = factory.createSeatHoldDAO();
+			this.seatDAO = factory.createSeatDAO(config);
+			this.seatHoldDAO = factory.createSeatHoldDAO(config);
 		} catch (DAOException e) {
 			// TODO log error
 			throw new TicketServiceException("Ticket Service intialization failed.", e);
 		}
-		nullCheck(seatHoldIdGenerator,"SeatHoldIdGenerator");
 		this.seatHoldIdGenerator = seatHoldIdGenerator;
-		nullCheck(confirmationCodeGenerator,"ConfirmationCodeGenerator");
 		this.confirmationCodeGenerator = confirmationCodeGenerator;
-		nullCheck(bestSeatStrategy,"BestSeatStrategy");
 		this.bestSeatStrategy = bestSeatStrategy;
-		nullCheck(logger,"Logger");
 		this.logger = logger;
 		this.validator=new TicketServiceInputValidator();
 	}
@@ -109,11 +107,11 @@ public class TicketServiceImpl implements TicketService {
 			removeExpiredSeatHoldsAndMarkThemAsAvailableSeats();
 			List<Seat> bestAvailbleSeats = seatDAO.findBestByStatus(Status.AVAILABLE,bestSeatStrategy, numSeats);
 			if(bestAvailbleSeats==null){
-				throw new TicketServiceException("TicketService.findAndHoldSeats() failed. Cause: seats not available.");
+				throw new TicketServiceException("TicketService.findAndHoldSeats() failed. Cause: requested seats not available.");
 			}
 			validator.validateRequestedNumberOfSeatsHasBeenHeld(bestAvailbleSeats.size(), numSeats);
 			SeatHold seatHold = new SeatHold(seatHoldIdGenerator.getNextSeatHoldId(), customerEmail, bestAvailbleSeats);
-			updateSeatStatus(bestAvailbleSeats, Status.HELD);
+			TicketServiceUtil.updateSeatStatus(bestAvailbleSeats, Status.HELD);
 			saveToDB(bestAvailbleSeats, seatHold);
 			return seatHold;
 		} catch (DAOException e) {
@@ -142,7 +140,7 @@ public class TicketServiceImpl implements TicketService {
 			removeExpiredSeatHoldsAndMarkThemAsAvailableSeats();
 			validator.validateAllReservedSeatsHaveBeenInHoldBefore(seatHold);
 			List<Seat> heldSeats = seatHold.getHeldSeats();
-			updateSeatStatus(heldSeats, Status.COMMITED);
+			TicketServiceUtil.updateSeatStatus(heldSeats, Status.COMMITED);
 			String confirmationCode = confirmationCodeGenerator.getNextConfirmationCode();
 			seatHold.setConfirmationCode(confirmationCode);
 			saveToDB(heldSeats, seatHold);
@@ -152,29 +150,30 @@ public class TicketServiceImpl implements TicketService {
 			throw new TicketServiceException("TicketService.reserveSeats().", e);
 		}
 	}
-
+	
+	/**
+	 * Utility method to save Seats and SeatHold to DB.
+	 * 
+	 * @param seats
+	 * @param seatHold
+	 * @throws DAOException
+	 */
 	protected void saveToDB(List<Seat> seats, SeatHold seatHold) throws DAOException {
 		seatDAO.save(seats);
 		seatHoldDAO.save(seatHold);
 	}
 	
+	/**
+	 * This method removes the expired seat holds and marks the available seats as availble.
+	 * Also updates seatDAO (DB)
+	 */
 	protected void removeExpiredSeatHoldsAndMarkThemAsAvailableSeats() {
-		Collection<SeatHold> allExpiredSeatHolds = seatHoldDAO.findAndRemoveAllExpired(ttlInSec);
-		for (SeatHold expiredSeatHold : allExpiredSeatHolds) {
-			updateSeatStatus(expiredSeatHold.getHeldSeats(), Status.AVAILABLE);
-			seatDAO.save(expiredSeatHold.getHeldSeats());
-		}
-	}
-
-	protected void updateSeatStatus(Collection<Seat> heldSeats, Status status) {
-		for (Seat seat : heldSeats) {
-			seat.setStatus(status);
-		}
-	}
-	
-	protected void nullCheck(Object obj, String param) {
-		if(obj==null){
-			throw new IllegalArgumentException("please supply "+param+".");
+		Collection<SeatHold> allExpiredSeatHolds = seatHoldDAO.findAllButRemoveExpired();
+		if(allExpiredSeatHolds!=null){
+			for (SeatHold expiredSeatHold : allExpiredSeatHolds) {
+				TicketServiceUtil.updateSeatStatus(expiredSeatHold.getHeldSeats(), Status.AVAILABLE);
+				seatDAO.save(expiredSeatHold.getHeldSeats());
+			}
 		}
 	}
 }

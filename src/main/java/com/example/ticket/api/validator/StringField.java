@@ -20,4 +20,21 @@ public class StringField implements Field {
 		}
 	}
 
+	public int getMinLength() {
+		return minLength;
+	}
+
+	public int getMaxLength() {
+		return maxLength;
+	}
+
+	public String getFieldValue() {
+		return fieldValue;
+	}
+
+	public String getFieldName() {
+		return fieldName;
+	}
+	
+
 }
