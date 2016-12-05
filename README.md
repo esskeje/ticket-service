@@ -25,9 +25,6 @@ example ticket booking service
  * (Due to lack of time) Only one class has been juint tested, that is TicketServiceImplTest  but this should give the idea of what kind of thought process has been given while writing juints.
  * It doesn't expose any server port where client can connect remotely lik
 
-* TODO:
-  Need to add more junits
-
 * Softwares Required:
   * Java 8
   * maven 3.3.9
@@ -36,7 +33,7 @@ example ticket booking service
  * 1)create a new directry and cd to it.
  * 2)git clone https://github.com/esskeje/ticket-service.git
  * 3)cd ticket-service/
- * 4) mvn clean install ---this will build the code and run juints
+ * 4)mvn clean install ---this will build the code and run juints
 
 * Run a simple java main program to see the E2E service in action:
   * java -jar target/ticket-service-0.0.1-SNAPSHOT-fat.jar 
@@ -45,11 +42,12 @@ example ticket booking service
   ```
   Ticket Service! START
   Initial numSeatsAvailable: 90
-  SeatHold=1, abc1@gmail.com
+  SeatHold: seatHoldId=1, customerEmail=abc1@gmail.com
   After 2 seats held, numSeatsAvailable: 88
   After above 2 seats reserved, numSeatsAvailable: 88
-  SeatHold=2, abc2@gmail.com
+  Another SeatHold: seatHoldId=2, customerEmail=abc2@gmail.com
   After another 2 seats held, numSeatsAvailable: 86
   After above 2 held seats reserved, numSeatsAvailable: 86
   Ticket Service! END.
+
   ```
