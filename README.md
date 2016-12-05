@@ -22,8 +22,7 @@ example ticket booking service
  * Some of the implementation classes will give guaranteed results in single instance of application
    For example, SimpleSeatHoldIdGenerator is such a class that will guarantee uniqueness in single instance of application.
    For multi instance/horizontal scalining there is a need to implement more sophisticated version of SeatHoldIdGenerator.
- * (Due to lack of time) Only one class has been juint tested, that is TicketServiceImplTest  but this should give the idea of what kind of thought process has been given while writing juints.
- * It doesn't expose any server port where client can connect remotely lik
+ * It doesn't expose any server port where client can connect remotely
 
 * Softwares Required:
   * Java 8
